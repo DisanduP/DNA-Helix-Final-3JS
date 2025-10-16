@@ -65,30 +65,33 @@
 
         #toggle-controls-btn {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #00ff88, #00dd77);
-            color: #0a0e27;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
+            bottom: 80px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #ff0088;
+            border-radius: 6px;
+            padding: 10px 15px;
+            color: #ff0088;
             font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            font-family: monospace;
+            cursor: pointer;
+            font-weight: normal;
             transition: all 0.3s ease;
-            z-index: 9;
+            z-index: 10;
         }
 
         #toggle-controls-btn:hover {
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.6);
-            transform: translateY(-2px);
+            background: rgba(0, 0, 0, 0.85);
+            box-shadow: 0 0 15px rgba(255, 0, 136, 0.3);
         }
 
-        #toggle-controls-btn:active {
-            transform: translateY(0);
+        .controls-indicator-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #ff0088;
+            border-radius: 50%;
+            margin-right: 8px;
         }
 
         #controls-panel::-webkit-scrollbar {
@@ -353,7 +356,11 @@
         <span class="indicator-dot"></span><span id="rotate-status">Auto-rotating</span>
     </div>
 
-    <div id="controls-panel">
+    <button id="toggle-controls-btn">
+        <span class="controls-indicator-dot"></span><span id="controls-status">Show Controls</span>
+    </button>
+
+    <div id="controls-panel" class="hidden">
         <div class="section-title">⚙️ DNA CONTROLS</div>
         
         <div class="control-group">
@@ -650,6 +657,13 @@
             this.textContent = autoRotate ? 'Pause' : 'Play';
             this.style.background = autoRotate ? 'linear-gradient(135deg, #ff0088, #ff3366)' : 'linear-gradient(135deg, #00ff88, #00dd77)';
             document.getElementById('rotate-status').textContent = autoRotate ? 'Auto-rotating' : 'Paused';
+        });
+
+        document.getElementById('toggle-controls-btn').addEventListener('click', function() {
+            const panel = document.getElementById('controls-panel');
+            const status = document.getElementById('controls-status');
+            panel.classList.toggle('hidden');
+            status.textContent = panel.classList.contains('hidden') ? 'Show Controls' : 'Hide Controls';
         });
 
         window.addEventListener('resize', () => {

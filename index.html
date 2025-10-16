@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D DNA Helix</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f4b 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ff88;
+            font-size: 13px;
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 20px;
+            border-left: 3px solid #00ff88;
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            z-index: 10;
+        }
+
+        #controls-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            border: 2px solid #00ff88;
+            border-radius: 15px;
+            padding: 15px;
+            color: #00ff88;
+            font-size: 12px;
+            max-width: 280px;
+            font-family: 'Arial', sans-serif;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+            max-height: 70vh;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        #controls-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #controls-panel::-webkit-scrollbar-track {
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 10px;
+        }
+
+        #controls-panel::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 12px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #00ff88;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 5px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, rgba(0,255,136,0.2), rgba(255,0,136,0.2));
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88, #00dd77);
+            cursor: pointer;
+            box-shadow: 0 0 10px #00ff88;
+            border: none;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88, #00dd77);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        .value-display {
+            min-width: 40px;
+            text-align: right;
+            color: #ff0088;
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        input[type="color"] {
+            width: 45px;
+            height: 32px;
+            border: 2px solid #00ff88;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        input[type="color"]:hover {
+            box-shadow: 0 0 12px #00ff88;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #00ff88, #00dd77);
+            color: #0a0e27;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex: 1;
+        }
+
+        button:hover {
+            box-shadow: 0 0 15px #00ff88;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            padding: 6px 8px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 9px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .preset-btn:hover {
+            background: rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 8px #00ff88;
+        }
+
+        .section-title {
+            font-weight: bold;
+            border-bottom: 1px solid #00ff88;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            color: #00ff88;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #stats {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #ff0088;
+            border-radius: 8px;
+            padding: 15px;
+            color: #ff0088;
+            font-size: 12px;
+            font-family: monospace;
+            min-width: 200px;
+            box-shadow: 0 0 15px rgba(255, 0, 136, 0.2);
+            z-index: 10;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #00ff88;
+        }
+
+        .stat-value {
+            color: #ff0088;
+            font-weight: bold;
+        }
+
+        #auto-rotate-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #00ff88;
+            border-radius: 6px;
+            padding: 10px 15px;
+            color: #00ff88;
+            font-size: 11px;
+            font-family: monospace;
+            z-index: 10;
+        }
+
+        .indicator-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        @media (max-width: 768px) {
+            #controls-panel {
+                max-width: 240px;
+                font-size: 11px;
+            }
+            #stats {
+                font-size: 10px;
+                min-width: 160px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <div>🧬 Interactive DNA Visualizer</div>
+        <div style="margin-top: 8px; color: #00aa66;">▸ Drag to rotate</div>
+        <div style="color: #00aa66;">▸ Scroll to zoom</div>
+        <div style="color: #00aa66;">▸ Customize everything →</div>
+    </div>
+
+    <div id="stats">
+        <div style="margin-bottom: 10px; font-weight: bold; color: #ff0088;">📊 DNA STATS</div>
+        <div class="stat-row">
+            <span class="stat-label">Radius:</span>
+            <span class="stat-value" id="stat-radius">8</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Turns:</span>
+            <span class="stat-value" id="stat-turns">2.5</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Atoms:</span>
+            <span class="stat-value" id="stat-atoms">160</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Pairs:</span>
+            <span class="stat-value" id="stat-pairs">26</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">FPS:</span>
+            <span class="stat-value" id="stat-fps">60</span>
+        </div>
+    </div>
+
+    <div id="auto-rotate-indicator">
+        <span class="indicator-dot"></span><span id="rotate-status">Auto-rotating</span>
+    </div>
+
+    <div id="controls-panel">
+        <div class="section-title">⚙️ DNA CONTROLS</div>
+        
+        <div class="control-group">
+            <label>Speed</label>
+            <div class="control-row">
+                <input type="range" id="rotSpeed" min="0" max="5" step="0.1" value="0.2">
+                <span class="value-display" id="rotSpeedVal">0.2</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Radius</label>
+            <div class="control-row">
+                <input type="range" id="helixRad" min="3" max="15" step="0.5" value="8">
+                <span class="value-display" id="helixRadVal">8</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Turns</label>
+            <div class="control-row">
+                <input type="range" id="turns" min="1" max="5" step="0.5" value="2.5">
+                <span class="value-display" id="turnsVal">2.5</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Atom Size</label>
+            <div class="control-row">
+                <input type="range" id="sphereSize" min="0.3" max="2" step="0.1" value="0.8">
+                <span class="value-display" id="sphereSizeVal">0.8</span>
+            </div>
+        </div>
+
+        <div class="section-title" style="margin-top: 12px;">🎨 COLORS</div>
+
+        <div class="control-group">
+            <label>Strand 1</label>
+            <div class="control-row">
+                <input type="color" id="color1" value="#00ff88">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Strand 2</label>
+            <div class="control-row">
+                <input type="color" id="color2" value="#ff0088">
+            </div>
+        </div>
+
+        <div class="section-title" style="margin-top: 12px;">✨ PRESETS</div>
+        <div class="preset-buttons">
+            <button class="preset-btn" id="preset-classic">Classic</button>
+            <button class="preset-btn" id="preset-cyber">Cyber</button>
+            <button class="preset-btn" id="preset-plasma">Plasma</button>
+            <button class="preset-btn" id="preset-ocean">Ocean</button>
+            <button class="preset-btn" id="preset-sunset">Sunset</button>
+            <button class="preset-btn" id="preset-matrix">Matrix</button>
+        </div>
+
+        <div class="button-group">
+            <button id="resetBtn">Reset</button>
+            <button id="toggleAutoRotate" style="background: linear-gradient(135deg, #ff0088, #ff3366);">Pause</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0);
+        document.body.appendChild(renderer.domElement);
+        
+        camera.position.z = 40;
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        
+        const pointLight1 = new THREE.PointLight(0x00ff88, 1);
+        pointLight1.position.set(30, 20, 30);
+        scene.add(pointLight1);
+        
+        const pointLight2 = new THREE.PointLight(0xff0088, 0.8);
+        pointLight2.position.set(-30, -20, 30);
+        scene.add(pointLight2);
+
+        let params = {
+            rotSpeed: 0.002,
+            helixRadius: 8,
+            turns: 2.5,
+            sphereRadius: 0.8,
+            color1: 0x00ff88,
+            color2: 0xff0088
+        };
+
+        const defaultParams = { ...params };
+
+        const presets = {
+            classic: { color1: '#00ff88', color2: '#ff0088', helixRadius: 8, turns: 2.5 },
+            cyber: { color1: '#00d4ff', color2: '#ff00ff', helixRadius: 10, turns: 3 },
+            plasma: { color1: '#ffff00', color2: '#ff00ff', helixRadius: 9, turns: 2.5 },
+            ocean: { color1: '#00ffff', color2: '#0088ff', helixRadius: 7, turns: 2 },
+            sunset: { color1: '#ff6600', color2: '#ff0066', helixRadius: 8, turns: 2.8 },
+            matrix: { color1: '#00ff00', color2: '#00ff00', helixRadius: 9, turns: 3.5 }
+        };
+
+        let helixGroup = new THREE.Group();
+        scene.add(helixGroup);
+
+        let autoRotate = true;
+        let frameCount = 0;
+        let fps = 60;
+
+        function hexToInt(hex) {
+            return parseInt(hex.replace('#', ''), 16);
+        }
+
+        function createDNA() {
+            while (helixGroup.children.length > 0) {
+                const child = helixGroup.children[0];
+                if (child.geometry) child.geometry.dispose();
+                if (child.material) child.material.dispose();
+                helixGroup.remove(child);
+            }
+
+            const material1 = new THREE.MeshPhongMaterial({
+                color: params.color1,
+                emissive: params.color1,
+                emissiveIntensity: 0.3,
+                shininess: 100
+            });
+            
+            const material2 = new THREE.MeshPhongMaterial({
+                color: params.color2,
+                emissive: params.color2,
+                emissiveIntensity: 0.3,
+                shininess: 100
+            });
+
+            const height = 30;
+            const pointsPerStrand = 80;
+            const sphereGeometry = new THREE.SphereGeometry(params.sphereRadius, 16, 16);
+
+            for (let i = 0; i < pointsPerStrand; i++) {
+                const t = i / pointsPerStrand;
+                const angle1 = t * Math.PI * 2 * params.turns;
+                const angle2 = angle1 + Math.PI;
+                const y = (t - 0.5) * height;
+
+                const x1 = Math.cos(angle1) * params.helixRadius;
+                const z1 = Math.sin(angle1) * params.helixRadius;
+                
+                const sphere1 = new THREE.Mesh(sphereGeometry, material1);
+                sphere1.position.set(x1, y, z1);
+                helixGroup.add(sphere1);
+
+                const x2 = Math.cos(angle2) * params.helixRadius;
+                const z2 = Math.sin(angle2) * params.helixRadius;
+                
+                const sphere2 = new THREE.Mesh(sphereGeometry, material2);
+                sphere2.position.set(x2, y, z2);
+                helixGroup.add(sphere2);
+
+                if (i % 3 === 0) {
+                    const geometry = new THREE.BufferGeometry();
+                    geometry.setAttribute('position', new THREE.BufferAttribute(
+                        new Float32Array([x1, y, z1, x2, y, z2]),
+                        3
+                    ));
+                    
+                    const line = new THREE.Line(
+                        geometry,
+                        new THREE.LineBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.4 })
+                    );
+                    helixGroup.add(line);
+                }
+            }
+
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('stat-radius').textContent = params.helixRadius.toFixed(1);
+            document.getElementById('stat-turns').textContent = params.turns.toFixed(1);
+            document.getElementById('stat-atoms').textContent = '160';
+            document.getElementById('stat-pairs').textContent = Math.floor(80/3).toString();
+        }
+
+        createDNA();
+
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let rotation = { x: 0, y: 0 };
+
+        document.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+                
+                rotation.y += deltaX * 0.005;
+                rotation.x += deltaY * 0.005;
+                
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        document.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            camera.position.z += e.deltaY * 0.05;
+            camera.position.z = Math.max(15, Math.min(100, camera.position.z));
+        }, { passive: false });
+
+        document.getElementById('rotSpeed').addEventListener('input', (e) => {
+            params.rotSpeed = parseFloat(e.target.value) * 0.001;
+            document.getElementById('rotSpeedVal').textContent = e.target.value;
+        });
+
+        document.getElementById('helixRad').addEventListener('input', (e) => {
+            params.helixRadius = parseFloat(e.target.value);
+            document.getElementById('helixRadVal').textContent = e.target.value;
+            createDNA();
+        });
+
+        document.getElementById('turns').addEventListener('input', (e) => {
+            params.turns = parseFloat(e.target.value);
+            document.getElementById('turnsVal').textContent = e.target.value;
+            createDNA();
+        });
+
+        document.getElementById('sphereSize').addEventListener('input', (e) => {
+            params.sphereRadius = parseFloat(e.target.value);
+            document.getElementById('sphereSizeVal').textContent = e.target.value;
+            createDNA();
+        });
+
+        document.getElementById('color1').addEventListener('input', (e) => {
+            params.color1 = hexToInt(e.target.value);
+            createDNA();
+        });
+
+        document.getElementById('color2').addEventListener('input', (e) => {
+            params.color2 = hexToInt(e.target.value);
+            createDNA();
+        });
+
+        Object.keys(presets).forEach(key => {
+            document.getElementById(`preset-${key}`).addEventListener('click', () => {
+                const preset = presets[key];
+                document.getElementById('color1').value = preset.color1;
+                document.getElementById('color2').value = preset.color2;
+                document.getElementById('helixRad').value = preset.helixRadius;
+                document.getElementById('turns').value = preset.turns;
+                
+                params.color1 = hexToInt(preset.color1);
+                params.color2 = hexToInt(preset.color2);
+                params.helixRadius = preset.helixRadius;
+                params.turns = preset.turns;
+                
+                document.getElementById('helixRadVal').textContent = preset.helixRadius;
+                document.getElementById('turnsVal').textContent = preset.turns;
+                createDNA();
+            });
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            params = { ...defaultParams };
+            document.getElementById('rotSpeed').value = 0.2;
+            document.getElementById('helixRad').value = 8;
+            document.getElementById('turns').value = 2.5;
+            document.getElementById('sphereSize').value = 0.8;
+            document.getElementById('color1').value = '#00ff88';
+            document.getElementById('color2').value = '#ff0088';
+            document.getElementById('rotSpeedVal').textContent = '0.2';
+            document.getElementById('helixRadVal').textContent = '8';
+            document.getElementById('turnsVal').textContent = '2.5';
+            document.getElementById('sphereSizeVal').textContent = '0.8';
+            createDNA();
+        });
+
+        document.getElementById('toggleAutoRotate').addEventListener('click', function() {
+            autoRotate = !autoRotate;
+            this.textContent = autoRotate ? 'Pause' : 'Play';
+            this.style.background = autoRotate ? 'linear-gradient(135deg, #ff0088, #ff3366)' : 'linear-gradient(135deg, #00ff88, #00dd77)';
+            document.getElementById('rotate-status').textContent = autoRotate ? 'Auto-rotating' : 'Paused';
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        let lastTime = Date.now();
+        function animate() {
+            requestAnimationFrame(animate);
+
+            frameCount++;
+            const currentTime = Date.now();
+            if (currentTime - lastTime > 1000) {
+                fps = frameCount;
+                document.getElementById('stat-fps').textContent = fps;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+
+            if (!isDragging && autoRotate) {
+                rotation.y += params.rotSpeed;
+            }
+
+            helixGroup.rotation.x = rotation.x;
+            helixGroup.rotation.y = rotation.y;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
